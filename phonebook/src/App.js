@@ -32,14 +32,26 @@ const App = () => {
       .then(returnedPerson => {
 
         setPersons([...persons,returnedPerson])
+        setMessage(
+          ` ${person.name} was added to the server`
+        )
+        setType("success")
+        setTimeout(() => {
+          setMessage("")
+        }, 5000)
       })
-      setMessage(
-        ` ${person.name} was added to the server`
-      )
-      setType("success")
-      setTimeout(() => {
-        setMessage("")
-      }, 5000)
+      .catch(error => {
+        setMessage(
+          ` ${error.response.data.error} `
+        )
+        setType("error")
+        setTimeout(() => {
+          setMessage("")
+        }, 5000)
+        // this is the way to access the error message
+        console.log(error.response.data.error)
+      })
+      
     
    } else {
     let double = persons.filter((elem)=>{return(elem.name===newName)})
@@ -48,21 +60,34 @@ const App = () => {
       console.log(changedPerson)
       personService
       .update(changedPerson.id, changedPerson).then((newPerson) => {
+        console.log(newPerson)
         setPersons(persons.map(person => person.id !== newPerson.id? person:newPerson ))
       })
       .catch(error => {
+        console.log(error)
+        console.log(typeof(error))
+        console.log(error === "TypeError: Cannot read properties of null (reading 'id')")
+        console.log(error.response)
+        if (error.hasOwnProperty("response")) {
         setMessage(
-          ` '${changedPerson.name}' was already removed from server`
-        )
+          `${error.response.data.error}`
+        ) } else {
+         setMessage(
+          `${changedPerson.name} was already deleted`
+         )
+        }
         setType("error")
         setTimeout(() => {
           setMessage("")
         }, 5000)
+        personService
+       .deletePerson(changedPerson.id, changedPerson)
+       .then(() => {
         setPersons(persons.filter(person => person.id !== changedPerson.id))
+        })
+        
       })
 
-    }else {
-    alert(` ${newNumber}  is already added to phonebook`)
     }
    }
    
